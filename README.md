@@ -1,12 +1,12 @@
 # Network_Base_For_UDP_And_TCP
 A simple and extensible networking demo for TCP & UDP in C#. Both server and client can send and receive different message types via user-defined classes implementing a shared interface.
 # Update:
-UDP now supports reliable transfer using seq and ack,please check it out in sub branch  
+UDP now supports reliable transfer using seq and ack
 ## ✨ Features
 - TCP + UDP examples with a unified structure
 - Extensible message system: implement `INetPacket` and register in the factory to customize send/receive functions
 - Unified packet header:  
-  UDP(None Reliable):[ Length(4) ][ TypeId(4) ][ Payload(Length) ]  
+  UDP(unReliable):[ Length(4) ][ TypeId(4) ][ Payload(Length) ]  
   UDP(Reliable):[ Length(4) ][ TypeId(4) ][ Flag(4) ][ Ack(4) ][ Seq(4) ][ AckMap(4) ][ Payload(Length) ]  
   TCP:[ Length(4) ][ Payload(Length) ]
 - Length: payload size (not including header)
@@ -67,7 +67,7 @@ public class TCPServer_Demo : TCPServer
     {
         public override void OnReceiveObj(int id, INetPacket obj)
         {
-            Logger.LogToTerminal($"Receive from clent{id} : {(obj as Packet_Demo).x} {(obj as Packet_Demo).y}");
+            Logger.LogToTerminal($"Receive from client{id} : {(obj as Packet_Demo).x} {(obj as Packet_Demo).y}");
             SendTo(id,obj);
         }
     }
@@ -99,13 +99,13 @@ public static void Main(string[] args)
             Factory_Demo factory_Demo = new Factory_Demo();
             if (!factory_Demo.Init())
             {
-                Logger.LogToTerminal("Fall to init Factory");
+                Logger.LogToTerminal("Fail to init Factory");
                 return;
             }
             TCPClient_Demo client = new TCPClient_Demo();
             if (!client.Init(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9888)))
             {
-                Logger.LogToTerminal("Fall to connect to the server");
+                Logger.LogToTerminal("Fail to connect to the server");
                 return;
             }
             client.SetReceivePacketIndex(0); //to use TCP, please set the packet index(refer to the factory)
@@ -116,7 +116,7 @@ public static void Main(string[] args)
 
 ## 📡 Protocol Notes  
 Header format  
-UDP(None Reliable):[ Length(4) ][ TypeId(4) ][ Payload(Length) ]  
+UDP(unReliable):[ Length(4) ][ TypeId(4) ][ Payload(Length) ]  
 UDP(Reliable):[ Length(4) ][ TypeId(4) ][ Flag(4) ][ Ack(4) ][ Seq(4) ][ AckMap(4) ][ Payload(Length) ]  
 TCP:[ Length(4 bytes, uint) ]  
 Receiving reads length (and type Id), uses factory to create object and FromBytes  

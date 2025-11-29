@@ -5,7 +5,7 @@ using System.Threading;
 using NetworkBase;
 namespace UDPServer
 {
-    public abstract class UDPServer 
+    public abstract class UDPServer : ServerBase
     {
         protected UDPServerSession m_Session;
         protected Thread m_SendThread;
@@ -41,12 +41,6 @@ namespace UDPServer
             Logger.LogToTerminal($"UDP Server Stop at{m_EndPoint}");
             OnStop();
         }
-        protected virtual bool OnInit()
-        {
-            return true;
-        }
-        protected virtual void OnStart(){}
-        protected virtual void OnStop(){}
         protected void OnReceiveData(int id)
         {
             var data=m_Session.GetDataFromDic(id);

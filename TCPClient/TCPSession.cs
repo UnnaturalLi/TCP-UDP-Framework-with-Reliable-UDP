@@ -7,7 +7,7 @@ using NetworkBase;
 namespace TCPClient
 {
     public delegate void DataReceivedHandler();
-    public class TCPSession : NetworkSessionBase
+    public class TCPSession : ClientSessionBase
     {
         
         public DataReceivedHandler OnDataReceived;

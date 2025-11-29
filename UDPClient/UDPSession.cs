@@ -9,7 +9,7 @@ namespace UDPClient
 
 {
     using NetworkBase;
-    public class UDPSession : NetworkSessionBase
+    public class UDPSession : ClientSessionBase
     {
         public DataReceivedHandler OnDataReceived;
         protected UdpClient m_UdpClient;

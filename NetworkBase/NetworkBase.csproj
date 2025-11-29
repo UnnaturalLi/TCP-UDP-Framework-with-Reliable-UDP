@@ -40,13 +40,14 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="AppBase.cs" />
+        <Compile Include="ServerBase.cs" />
+        <Compile Include="ServerSessionBase.cs" />
         <Compile Include="ClientBase.cs" />
         <Compile Include="Factory.cs" />
         <Compile Include="Factory_Demo.cs" />
         <Compile Include="INetPacket.cs" />
         <Compile Include="Logger.cs" />
-        <Compile Include="NetworkSessionBase.cs" />
+        <Compile Include="ClientSessionBase.cs" />
         <Compile Include="Packet_Demo.cs" />
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>

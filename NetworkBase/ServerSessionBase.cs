@@ -7,7 +7,7 @@ using NetworkBase;
 
 namespace NetworkBase
 {
-    public abstract class AppBase
+    public abstract class ServerSessionBase
     {
         protected Thread m_RunThread;
         protected bool m_IsRunning;

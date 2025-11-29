@@ -4,7 +4,7 @@ namespace NetworkBase
 {
     public abstract class ClientBase
     {
-        public NetworkSessionBase session;
+        public ClientSessionBase session;
         protected IPEndPoint m_Addr;
         public bool isStopped
         {

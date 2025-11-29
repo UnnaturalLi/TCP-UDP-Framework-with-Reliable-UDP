@@ -17,7 +17,7 @@ namespace TCPServer
             Read = 0;
         }
     }
-    public abstract class TCPServer
+    public abstract class TCPServer: ServerBase
     {
         protected TCPServerSession m_Session;
         protected IPEndPoint m_EndPoint;
@@ -49,12 +49,7 @@ namespace TCPServer
             OnStop();
         }
         
-        public virtual void OnStart(){}
-        public virtual void OnStop(){}
-        public virtual bool OnInit()
-        {
-            return true;
-        }
+        
 
         public void OnReceiveData(int id)
         {

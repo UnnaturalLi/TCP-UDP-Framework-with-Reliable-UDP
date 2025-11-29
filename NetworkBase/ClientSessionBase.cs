@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace NetworkBase
 {
-    public abstract class NetworkSessionBase
+    public abstract class ClientSessionBase
     {
         private bool m_IsClosed;
         public bool isClosed { get { return m_IsClosed; }

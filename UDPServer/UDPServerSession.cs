@@ -34,7 +34,7 @@ namespace UDPServer
         }
     }
 
-    public class UDPServerSession : AppBase
+    public class UDPServerSession : ServerSessionBase
     {
         public ReceiveData OnReceive;
         protected Dictionary<int, UDPClientInfo> m_ClientsDic = new Dictionary<int, UDPClientInfo>();

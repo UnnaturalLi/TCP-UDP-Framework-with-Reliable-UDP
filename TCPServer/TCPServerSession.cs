@@ -18,7 +18,7 @@ namespace TCPServer
         }
     }
     
-    public class TCPServerSession : AppBase
+    public class TCPServerSession : ServerSessionBase
     {
         protected Thread m_SendThread;
         protected List<TCPClientInfo> m_Clients = new List<TCPClientInfo>();

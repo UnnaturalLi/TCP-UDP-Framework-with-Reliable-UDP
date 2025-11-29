@@ -1,17 +1,18 @@
-using System.Net.Sockets;
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Threading;
-using NetworkBase;
-namespace TCPClient
+using TCPClient;
+using System;
+using System.Net;
+
+namespace UDPClient
+
 {
-    public delegate void DataReceivedHandler();
-    public class TCPSession : ClientSessionBase
+    using NetworkBase;
+    public class UDPClientSession : ClientSessionBase
     {
-        
         public DataReceivedHandler OnDataReceived;
-        protected TcpClient m_TcpClient;
+        protected UdpClient m_UdpClient;
         protected Thread m_SendThread;
         protected Thread m_ReceiveThread;
         private bool m_IsRunning;
@@ -21,12 +22,16 @@ namespace TCPClient
         private Queue<byte[]> m_ReceiveBuffers = new Queue<byte[]>();
         public readonly AutoResetEvent hasDataToHandle = new AutoResetEvent(false);
         
+        private uint m_Ack;
+        private uint m_AckMap;
+        private bool m_AckUpdated;
+        private Thread m_AckThread;
         protected override bool OnInit()
         {
             try
             {
-                m_TcpClient = new TcpClient();
-                m_TcpClient.Connect(m_Addr);
+                m_UdpClient = new UdpClient();
+                m_UdpClient.Connect(m_Addr);
                 return true;
             }
             catch (Exception e)
@@ -34,15 +39,13 @@ namespace TCPClient
                 Logger.LogToTerminal("Init error: " + e.ToString());
                 return false;
             }
-
-            
         }
-
         protected override void OnStart()
         {
             m_IsRunning = true;
             m_SendThread = CreateThread(T_Send);
             m_ReceiveThread= CreateThread(T_Receive);
+            m_AckThread = CreateThread(T_SendAck);
         }
 
         protected override void OnClose()
@@ -58,10 +61,10 @@ namespace TCPClient
                 m_ReceiveThread.Join(3000);
                 m_ReceiveThread = null;
             }
-            if (m_TcpClient != null)
+            if (m_UdpClient != null)
             {
-                m_TcpClient.Close();
-                m_TcpClient = null;
+                m_UdpClient.Close();
+                m_UdpClient = null;
             }
             if (hasDataToHandle != null)
             {
@@ -77,7 +80,7 @@ namespace TCPClient
             byte[][] data = null;
             lock (m_ReceiveBuffers)
             {
-                 data = m_ReceiveBuffers.ToArray();
+                data = m_ReceiveBuffers.ToArray();
                 m_ReceiveBuffers.Clear();
             }
             return data;
@@ -88,62 +91,49 @@ namespace TCPClient
             {
                 m_SendBuffers.Enqueue(data);
             }
-
             m_HasDataToSend.Set();
             return true;
         }
 
         protected void T_Receive()
         {
-            var networkStream = m_TcpClient.GetStream();
             byte[] buffer;
             while (true)
             {
-                if(!m_IsRunning){return;}
-                    try
+                if(!m_IsRunning|| isClosed){return;}
+                try
+                {
+                    bool enqueue = false;
+                    while (m_UdpClient.Available > 0)
                     {
-                        if (isClosed || m_TcpClient.Connected == false)
+                        byte[] data=m_UdpClient.Receive(ref m_Addr);
+                        lock (m_ReceiveBuffers)
                         {
-                            return;
+                            m_ReceiveBuffers.Enqueue(data);
+                            enqueue = true;
                         }
-
-                        bool enqueue = false;
-                        while (networkStream.DataAvailable)
-                        {
-                            buffer = new byte[1024];
-                            int n = networkStream.Read(buffer, 0, buffer.Length);
-                            var chunk = new byte[n];
-                            Buffer.BlockCopy(buffer, 0, chunk, 0, n);
-                            lock (m_ReceiveBuffers)
-                            {
-                                m_ReceiveBuffers.Enqueue(chunk);
-                                enqueue = true;
-                            }
-                        }
-
-                        if (enqueue)
-                        {
-                            OnDataReceived?.Invoke();
-                        }
-
-                        Thread.Sleep(100);
                     }
-                    catch (Exception e)
+                    if (enqueue)
                     {
-                        Logger.LogToTerminal("Receive error: " + e.ToString());
+                        OnDataReceived?.Invoke();
                     }
+                    Thread.Sleep(100);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogToTerminal("Receive error: " + e.ToString());
+                }
             }
         }
 
         protected void T_Send()
         {
-            var networkStream = m_TcpClient.GetStream();
             Byte[][] data;
             while (m_IsRunning)
             {
                 try
                 {
-                    if (isClosed || m_TcpClient.Connected == false)
+                    if (isClosed)
                     {
                         return;
                     }
@@ -158,7 +148,7 @@ namespace TCPClient
                     data= buffer.ToArray();
                     for (int i = 0; i < data.Length; i++)
                     {
-                        networkStream.Write(data[i], 0, data[i].Length);
+                        m_UdpClient.Send(data[i], data[i].Length);
                     }
                     data = null;
                 }
@@ -166,9 +156,36 @@ namespace TCPClient
                 {
                     Logger.LogToTerminal("Send error: " + e.ToString());
                 }
-
                 m_HasDataToSend.WaitOne(1000);
             }
         }
+        public void UpdateAck(uint ack, uint ackMap)
+        {
+            m_Ack = ack;
+            m_AckMap = ackMap;
+            m_AckUpdated=true;
+        }
+
+        public void T_SendAck()
+        {
+            while(true){
+                if (!m_IsRunning|| m_AckUpdated==false)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+                byte[] packet = new byte[24];
+                Array.Copy(BitConverter.GetBytes(0u),0,packet,0,4);
+                Array.Copy(BitConverter.GetBytes(-1),0,packet,4,4);
+                Array.Copy(BitConverter.GetBytes(1),0,packet,8,4);
+                Array.Copy(BitConverter.GetBytes(m_Ack),0,packet,12,4);
+                Array.Copy(BitConverter.GetBytes(0),0,packet,16,4);
+                Array.Copy(BitConverter.GetBytes(m_AckMap),0,packet,20,4);
+                AppendToSendQueue(packet);
+                m_AckUpdated=false;
+                Thread.Sleep(1000);
+            }
+        }
     }
+    
 }

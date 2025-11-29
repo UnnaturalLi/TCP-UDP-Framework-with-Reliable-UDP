@@ -19,8 +19,8 @@ namespace TCPClient
         {
             dataQueue = new Queue<INetPacket>();
             m_recvBuffer = new byte[1024];
-            session = new TCPSession();
-            (session as TCPSession).OnDataReceived += Receive;
+            session = new TCPClientSession();
+            (session as TCPClientSession).OnDataReceived += Receive;
             if (!session.Init(m_Addr))
             {
                 return false;
@@ -51,13 +51,13 @@ namespace TCPClient
             byte[] sendBuffer=new byte[data.Length + 4];
             Array.Copy(BitConverter.GetBytes(data.Length), 0, sendBuffer, 0, 4);
             Array.Copy(data, 0, sendBuffer, 4, data.Length);
-            (session as TCPSession)?.AppendToSendQueue(sendBuffer);
+            (session as TCPClientSession)?.AppendToSendQueue(sendBuffer);
         }
 
         protected abstract void OnReceive();
         private void Receive()
         {
-            var data = (session as TCPSession).GetReceivedData();
+            var data = (session as TCPClientSession).GetReceivedData();
                 for (int i = 0; i < data.Length; i++)
                 {
                     for (int j = 0; j < data[i].Length; j++)

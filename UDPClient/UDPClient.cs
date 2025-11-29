@@ -28,9 +28,9 @@ namespace UDPClient
         {
             m_Heartbeat= (int)args[0];
             dataQueue = new Queue<INetPacket>();
-            session = new UDPSession();
+            session = new UDPClientSession();
             m_NextHandledPacket = 1;
-            (session as UDPSession).OnDataReceived += Receive;
+            (session as UDPClientSession).OnDataReceived += Receive;
             if (!session.Init(m_Addr))
             {
                 return false;
@@ -67,7 +67,7 @@ namespace UDPClient
                 Array.Copy(packetData,0,data,24,packetData.Length);
                 m_PendingACKPackets.Add(m_Seq,data);
                 m_Seq++;
-                (session as UDPSession).AppendToSendQueue(data);
+                (session as UDPClientSession).AppendToSendQueue(data);
             }
             catch (Exception e)
             {
@@ -107,7 +107,7 @@ namespace UDPClient
                 {
                     try
                     {
-                        (session as UDPSession).AppendToSendQueue(m_PendingACKPackets[(uint)(ack - i)]);
+                        (session as UDPClientSession).AppendToSendQueue(m_PendingACKPackets[(uint)(ack - i)]);
                     }
                     catch (Exception e)
                     {
@@ -122,7 +122,7 @@ namespace UDPClient
         
         private void Receive()
         {
-            var newData=(session as UDPSession).GetReceivedData();
+            var newData=(session as UDPClientSession).GetReceivedData();
             bool newPacket = false;
             uint oldAck = m_Ack;
             uint oldMap= m_AckMap;
@@ -209,7 +209,7 @@ namespace UDPClient
             }
             if (oldAck != m_Ack || oldMap != m_AckMap)
             {
-                (session as UDPSession).UpdateAck(m_Ack, m_AckMap);
+                (session as UDPClientSession).UpdateAck(m_Ack, m_AckMap);
             }
         }
     }

@@ -1,12 +1,11 @@
-# Network_Base_For_UDP_And_TCP
-A simple and extensible networking demo for TCP & UDP in C#. Both server and client can send and receive different message types via user-defined classes implementing a shared interface.
+# TCP/UDP Framework with Reliable UDP (C#)
+A simple and extensible networking framework in C#. Both server and client can send and receive different message types via user-defined classes implementing a shared interface.
 # Update:
-UDP now supports reliable transfer using seq and ack
+UDP now supports reliable transfer using SEK and ACK
 ## ✨ Features
 - TCP + UDP examples with a unified structure
 - Extensible message system: implement `INetPacket` and register in the factory to customize send/receive functions
 - Unified packet header:  
-  UDP(unReliable):[ Length(4) ][ TypeId(4) ][ Payload(Length) ]  
   UDP(Reliable):[ Length(4) ][ TypeId(4) ][ Flag(4) ][ Ack(4) ][ Seq(4) ][ AckMap(4) ][ Payload(Length) ]  
   TCP:[ Length(4) ][ Payload(Length) ]
 - Length: payload size (not including header)
